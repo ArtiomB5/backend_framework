@@ -1,25 +1,28 @@
+const Application = require("./framework/Application");
+const jsonParser = require("./framework/parseJson");
+const urlParser = require("./framework/parseUrl");
+const userRouter = require("./src/user-router");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+
+dotenv.config();
+
 const PORT = process.env.PORT || 5500;
-const Router = require('./framework/Router');
-const emitter = new EventEmitter();
 
-const router = new Router();
+const app = new Application();
 
-router.get("/users", (req, res) => {
-  res.end("you send GET request to /users endpoint");
-});
-router.get("/posts", (req, res) => {
-  res.end("you send GET request to /posts endpoint");
-});
+app.addRouter(userRouter);
+app.use(jsonParser);
+app.use(urlParser(`http://localhost:${PORT}`));
 
-const server = http.createServer((req, res) => {
-  //   эмитим кастомное событие типа [/users]:[POST]
-  //   передаем req и res внутрь события
-  //   когда эмиттим событие то оно возвращает false если такого события не существует
-  const emitted = emitter.emit(`[${req.url}]:[${req.method}]`, req, res);
-  if (!emitted) {
-    //  закрываем стрим
-    res.end();
+const start = async () => {
+  try {
+    const connection = await mongoose.connect(process.env.MONGO_URL);
+    console.log(connection);
+    app.listen(PORT, () => console.log(`Server started on PORT ${PORT}`));
+  } catch (error) {
+    console.log(error);
   }
-});
+};
 
-server.listen(PORT, () => console.log(`Server started on PORT ${PORT}`));
+start();

@@ -1,6 +1,9 @@
+const events = require("node:events");
+
 module.exports = class Router {
   constructor() {
     this.endpoints = {};
+    this.emitter = new events.EventEmitter();
   }
 
   request(method = "GET", url, handler) {
@@ -21,7 +24,7 @@ module.exports = class Router {
       endpoint[method] = handler;
 
       // добавляем слушатель события на кастомное событие типа [/users]:[POST]
-      emitter.on(`[${url}]:[${method}]`, (req, res) => {
+      this.emitter.on(`[${url}]:[${method}]`, (req, res) => {
         handler(req, res);
       });
     }
